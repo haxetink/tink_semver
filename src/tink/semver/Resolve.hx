@@ -8,54 +8,63 @@ class Resolve {
 	function new() {
 		
 	}
-	@:generic static public function dependencies<Name>(deps:Array<Dependency<Name>>, getInfos:Name->Outcome<Infos<Name>, Error>):Outcome<Map<Name, Version>, Error> {
+	@:generic static public function dependencies<Name>(deps:Array<Dependency<Name>>, getInfos:Name->Surprise<Infos<Name>, Error>):Surprise<Map<Name, Version>, Error> {
       
-		function seek(rest:Array<Name>, constraints:Map<Name, Constraint>):Outcome<Map<Name, Version>, Error> {
+		function seek(rest:Array<Name>, constraints:Map<Name, Constraint>, ?pos:haxe.PosInfos):Surprise<Map<Name, Version>, Error> {
 			if (rest.length == 0)
-				return Success(new Map());
+				return Future.sync(Success(new Map()));
 				
 			var name = rest[0];
-			
-			var constraint = constraints[name],
-          infos = switch getInfos(name) {
-            case Success(v): v;
-            case Failure(e): return Failure(e);
+			trace('${pos.lineNumber} -> $name: $constraints');
+      return getInfos(name) >> function (infos:Infos<Name>):Surprise<Map<Name, Version>, Error> {
+        var constraint = constraints[name];
+        
+        return Future.async(function (cb) {
+          
+          var iter = infos.iterator();
+          
+          function next() {
+            if (iter.hasNext()) {
+              var v = iter.next();
+              if (!constraint.isSatisfiedBy(v.version)) 
+                next();
+              else {
+                var copy = [for (key in constraints.keys()) key => constraints[key]];//just a copy
+                
+                copy[name] = Eq(v.version);
+                
+                for (c in v.dependencies)
+                  copy[c.name] = copy[c.name] && c.constraint;
+                  
+                seek(rest.slice(1), copy).handle(function (o) switch o {
+                  case Success(ret):
+                    ret[name] = v.version;
+                    
+                    for (name in ret.keys())
+                      copy[name] = Eq(ret[name]);
+                    
+                    seek([for (d in v.dependencies) d.name], copy).handle(function (o) switch o {
+                      case Success(deps):
+                        
+                        for (name in deps.keys())
+                          ret[name] = deps[name];
+                        
+                        cb(Success(ret));  
+                      default:
+                        next();
+                    });
+                      
+                  default:
+                    next();
+                });
+              }
+            }
+            else cb(Failure(new Error(NotFound, 'Unable to resolve dependencies for $name')));
           }
-			
-			for (v in infos) {
-				if (constraint.isSatisfiedBy(v.version)) {
-					//trace('trying $name@${v.version}');
-					
-					var copy = [for (key in constraints.keys()) key => constraints[key]];//just a copy
-					
-					copy[name] = Eq(v.version);
-					
-					for (d in v.dependencies)
-						copy[d.name] = And(copy[d.name], d.constraint);
-						
-					switch seek(rest.slice(1), copy) {
-						case Success(ret):
-							ret[name] = v.version;
-							
-							for (name in ret.keys())
-								copy[name] = Eq(ret[name]);
-							
-							switch seek([for (d in v.dependencies) d.name], copy) {
-								case Success(deps):
-									for (name in deps.keys())
-										ret[name] = deps[name];
-										
-									return Success(ret);
-								default:
-							}
-							
-						default:
-					}
-					
-				}
-			}
-			
-			return Failure(new Error(NotFound, 'Unable to resolve dependencies'));
+          next();
+        });
+      }
+
 		}
 		return seek(
 			[for (d in deps) d.name],

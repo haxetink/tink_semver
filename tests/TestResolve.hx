@@ -46,16 +46,30 @@ class TestResolve extends TestCase {
 				{ version: v(1, 0, 0), dependencies: [{ name: 'tink_macro', constraint: null }, { name: 'tink_core', constraint: v(1, 2, 0)...v(1, 3, 0) }] },
 			]
 		];
-		expect(
-			['tink_syntaxhub' => v(1, 0, 0), 'tink_macro' => v(1, 0, 0), 'tink_core' => v(1, 2, 5)],
-			Resolve.dependencies([ { name: 'tink_syntaxhub' } ], function (name) return switch m[name] {
-        case null: Failure(new Error(NotFound, 'No version info available for $name'));
-        case v: Success(v);
-      }).sure()
+    
+    var queue = [];
+    
+    function sync<A>(v:A):Future<A> {
+      var ret = Future.trigger();
+      queue.push(function () ret.trigger(v));
+      return ret;
+    }
+    
+    Resolve.dependencies([ { name: 'tink_syntaxhub' } ], function (name) return sync(switch m[name] {
+      case null: Failure(new Error(NotFound, 'No version info available for $name'));
+      case v: Success(v);
+    })).handle(function (o) 
+      expect(
+        ['tink_syntaxhub' => v(1, 0, 0), 'tink_macro' => v(1, 0, 0), 'tink_core' => v(1, 2, 5)],
+        o.sure()
+			)
 		);
+    
+    for (q in queue) q();
 	}
 	
 	function expect(expected:Map<String, Version>, actual:Map<String, Version>) {
+    trace(actual);
 		assertEquals(expected.count(), actual.count());
 		for (name in expected.keys()) {
 			assertEquals(expected[name].toString(), actual[name].toString());

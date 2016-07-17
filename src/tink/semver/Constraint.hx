@@ -45,7 +45,7 @@ abstract Constraint(Null<ConstraintData>) from ConstraintData {
 		return 
 			switch s {
 				case null, '', '*': Success(null);
-				default:
+				default: //TODO: this parser is *very* crude
 					(function () return join(Or, s.split('||').map(parseSet)))
 						.catchExceptions(Version.reportError);
 			}
@@ -131,6 +131,13 @@ abstract Constraint(Null<ConstraintData>) from ConstraintData {
         case { major: 0 } : v...v.nextMinor();
         default: v...v.nextMajor();
       }
+      
+  @:op(a && b) static function and(a:Constraint, b:Constraint):Constraint
+    return switch [a, b] {
+      case [null, _]: b;
+      case [_, null]: a;
+      default: And(a, b);
+    }
 }
 
 enum ConstraintData {
