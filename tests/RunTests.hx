@@ -2,7 +2,6 @@ package ;
 
 import haxe.unit.TestCase;
 import haxe.unit.TestRunner;
-import tink.semver.*;
 
 class RunTests {
 	static var cases:Array<TestCase> = [

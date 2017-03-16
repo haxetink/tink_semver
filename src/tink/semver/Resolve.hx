@@ -24,11 +24,6 @@ class Resolve {
       
       var constraint = constraints[name];
 
-      function print(constraints:Map<Name, Constraint>) {
-        return [for (c in constraints.keys()) c+':'+constraints[c]].join(', ');
-      }
-
-      trace('seek $rest with ${print(constraints)}');
       return getInfos(name).next(function (infos) {
         function attempt(pos:Int):Resolved<Name> {
           return 
@@ -45,7 +40,6 @@ class Resolve {
                   for (c in v.dependencies)
                     c.name => constraints[c.name] && c.constraint
                 ]);
-                trace('attempt $name@${v.version} ($pos/${infos.length}) within ${print(constraints)}');  
 
                 var rest = rest.slice(1);
                 for (d in v.dependencies) 
