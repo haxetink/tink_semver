@@ -88,7 +88,6 @@ class TestResolve extends TestCase {
     var queue = [];
     
     function sync<A>(v:A):Future<A> {
-			return Future.sync(v);
       var ret = Future.trigger();
       queue.push(function () ret.trigger(v));
       return ret;
@@ -101,7 +100,7 @@ class TestResolve extends TestCase {
 		
 
 		Resolve.dependencies([ { name: 'libD' }, { name: 'libA', constraint: null } ], resolve).handle(function (x) {
-      
+
 			expect([
 				'libA' => v(91, 0, 0),
 				'libB' => v( 5, 0, 0),
