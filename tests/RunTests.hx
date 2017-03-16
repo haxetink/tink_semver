@@ -2,15 +2,16 @@ package ;
 
 import haxe.unit.TestCase;
 import haxe.unit.TestRunner;
-import tink.semver.Resolve;
+import tink.semver.*;
 
 class RunTests {
 	static var cases:Array<TestCase> = [
-		//new TestConstraint(),
-		//new TestResolve(),
+		new TestConstraint(),
+		new TestResolve(),
 	];
 
   static function main() {
+
     var runner = new TestRunner();
     for (c in cases)
       runner.add(c);

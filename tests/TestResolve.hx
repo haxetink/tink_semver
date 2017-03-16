@@ -8,44 +8,44 @@ using tink.CoreApi;
 using Lambda;
 
 class TestResolve extends TestCase {
-	function v(a, ?i = 0, ?p = 0)
-		return new Version(a, i, p);
-	
-	function optimistic(a, i, p) {
-		var v = v(a, i, p);
-		return v...(v.nextMajor());
-	}
-		
-	function _testSimple() {
-		var m:Map<String, Infos<String>> = [
-			'tink_core' => [
-				{ version: v(1, 0, 0), dependencies: [] },
-				{ version: v(1, 0, 1), dependencies: [] },
-				{ version: v(1, 0, 2), dependencies: [] },
-				{ version: v(1, 0, 3), dependencies: [] },
-				{ version: v(1, 1, 0), dependencies: [] },
-				{ version: v(1, 1, 1), dependencies: [] },
-				{ version: v(1, 1, 2), dependencies: [] },
-				{ version: v(1, 1, 3), dependencies: [] },
-				{ version: v(1, 2, 0), dependencies: [] },
-				{ version: v(1, 2, 1), dependencies: [] },
-				{ version: v(1, 2, 2), dependencies: [] },
-				{ version: v(1, 2, 3), dependencies: [] },
-				{ version: v(1, 2, 4), dependencies: [] },
-				{ version: v(1, 2, 5), dependencies: [] },
-				{ version: v(1, 3, 0), dependencies: [] },
-			],
-			'tink_macro' => [
-				{ 
-					version: v(1, 0, 0), dependencies: [{ name: 'tink_core', constraint: optimistic(1, 1, 0) }],
-				} , {
-					version: v(1, 1, 0), dependencies: [{ name: 'tink_core', constraint: v(1, 1, 0)...v(1, 2, 0) }] 
-				},			
-			],
-			'tink_syntaxhub' => [
-				{ version: v(1, 0, 0), dependencies: [{ name: 'tink_macro', constraint: null }, { name: 'tink_core', constraint: v(1, 2, 0)...v(1, 3, 0) }] },
-			]
-		];
+  function v(a, ?i = 0, ?p = 0)
+    return new Version(a, i, p);
+  
+  function optimistic(a, i, p) {
+    var v = v(a, i, p);
+    return v...(v.nextMajor());
+  }
+    
+  function _testSimple() {
+    var m:Map<String, Infos<String>> = [
+      'tink_core' => [
+        { version: v(1, 0, 0), dependencies: [] },
+        { version: v(1, 0, 1), dependencies: [] },
+        { version: v(1, 0, 2), dependencies: [] },
+        { version: v(1, 0, 3), dependencies: [] },
+        { version: v(1, 1, 0), dependencies: [] },
+        { version: v(1, 1, 1), dependencies: [] },
+        { version: v(1, 1, 2), dependencies: [] },
+        { version: v(1, 1, 3), dependencies: [] },
+        { version: v(1, 2, 0), dependencies: [] },
+        { version: v(1, 2, 1), dependencies: [] },
+        { version: v(1, 2, 2), dependencies: [] },
+        { version: v(1, 2, 3), dependencies: [] },
+        { version: v(1, 2, 4), dependencies: [] },
+        { version: v(1, 2, 5), dependencies: [] },
+        { version: v(1, 3, 0), dependencies: [] },
+      ],
+      'tink_macro' => [
+        { 
+          version: v(1, 0, 0), dependencies: [{ name: 'tink_core', constraint: optimistic(1, 1, 0) }],
+        } , {
+          version: v(1, 1, 0), dependencies: [{ name: 'tink_core', constraint: v(1, 1, 0)...v(1, 2, 0) }] 
+        },      
+      ],
+      'tink_syntaxhub' => [
+        { version: v(1, 0, 0), dependencies: [{ name: 'tink_macro', constraint: null }, { name: 'tink_core', constraint: v(1, 2, 0)...v(1, 3, 0) }] },
+      ]
+    ];
     
     var queue = [];
     
@@ -62,11 +62,11 @@ class TestResolve extends TestCase {
       expect(
         ['tink_syntaxhub' => v(1, 0, 0), 'tink_macro' => v(1, 0, 0), 'tink_core' => v(1, 2, 5)],
         o.sure()
-			)
-		);
+      )
+    );
     
     for (q in queue) q();
-	}
+  }
   
   function testWeird() {
     var m:Map<String, Infos<String>> = [
@@ -93,12 +93,12 @@ class TestResolve extends TestCase {
     
     Resolve.dependencies([ { name: 'libD' }, { name: 'libA', constraint: null } ], resolve).handle(function (x) trace(x));
   }
-	
-	function expect(expected:Map<String, Version>, actual:Map<String, Version>) {
+  
+  function expect(expected:Map<String, Version>, actual:Map<String, Version>) {
     trace(actual);
-		assertEquals(expected.count(), actual.count());
-		for (name in expected.keys()) {
-			assertEquals(expected[name].toString(), actual[name].toString());
-		}
-	}
+    assertEquals(expected.count(), actual.count());
+    for (name in expected.keys()) {
+      assertEquals(expected[name].toString(), actual[name].toString());
+    }
+  }
 }
