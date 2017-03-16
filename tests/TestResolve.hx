@@ -8,7 +8,7 @@ using tink.CoreApi;
 using Lambda;
 
 class TestResolve extends TestCase {
-	function v(a, i, p)
+	function v(a, ?i = 0, ?p = 0)
 		return new Version(a, i, p);
 	
 	function optimistic(a, i, p) {
@@ -16,7 +16,7 @@ class TestResolve extends TestCase {
 		return v...(v.nextMajor());
 	}
 		
-	function testSimple() {
+	function _testSimple() {
 		var m:Map<String, Infos<String>> = [
 			'tink_core' => [
 				{ version: v(1, 0, 0), dependencies: [] },
@@ -67,6 +67,32 @@ class TestResolve extends TestCase {
     
     for (q in queue) q();
 	}
+  
+  function testWeird() {
+    var m:Map<String, Infos<String>> = [
+      'libA' => [for (i in 0...10) { version: v(i), dependencies: [] }],
+      'libB' => [for (i in 0...1) { version: v(i), dependencies: [{ name: 'libA', constraint: v(i * 17)...v(7 + i * 17) }] }], //0...7, 17...24, 34...41, 51...58, 68...75, 85...92
+      'libC' => [for (i in 0...1) { version: v(i), dependencies: [{ name: 'libA', constraint: v(i * 13)...v(5 + i * 13) }] }], //0...5, 13...18, 26...31, 39...44, 52...57, 65...70, 78...83, 91...96
+      'libD' => [for (c in 0...1) for (b in 0...1) { 
+          version: v(b, c), 
+          dependencies: [ { 
+            name: 'libC', constraint: (v(c):Constraint) 
+            //name: 'libC', constraint: null
+          }, { 
+            name: 'libB', constraint: (v(b):Constraint)
+            //name: 'libB', constraint: null
+          }] 
+      }],
+    ];
+    
+    function resolve(name) 
+      return Future.sync(switch m[name] {
+        case null: Failure(new Error(NotFound, 'No version info available for $name'));
+        case v: Success(v);
+      });
+    
+    Resolve.dependencies([ { name: 'libD' }, { name: 'libA', constraint: null } ], resolve).handle(function (x) trace(x));
+  }
 	
 	function expect(expected:Map<String, Version>, actual:Map<String, Version>) {
     trace(actual);

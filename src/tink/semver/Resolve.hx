@@ -15,20 +15,29 @@ class Resolve {
 				return Future.sync(Success(new Map()));
 				
 			var name = rest[0];
-			trace('${pos.lineNumber} -> $name: $constraints');
+			//trace('${pos.lineNumber} -> $name: $constraints');
       return getInfos(name) >> function (infos:Infos<Name>):Surprise<Map<Name, Version>, Error> {
         var constraint = constraints[name];
         
         return Future.async(function (cb) {
-          
-          var iter = infos.iterator();
+          trace(name + ' -> ' + infos.length +' with '+rest);
+          trace(constraint);
+          var pos = 0;
+          var cb = function (x) {
+            trace('done $name $pos/${infos.length} '+Std.string(x));
+            cb(x);
+          }
           
           function next() {
-            if (iter.hasNext()) {
-              var v = iter.next();
-              if (!constraint.isSatisfiedBy(v.version)) 
+            if (pos < infos.length) {
+              var v = infos[pos++];
+              if (!constraint.isSatisfiedBy(v.version)) {
+                trace('skip ${v.version}');
                 next();
+              }
               else {
+                trace('trying $name@${v.version} ($pos/${infos.length})');
+                
                 var copy = [for (key in constraints.keys()) key => constraints[key]];//just a copy
                 
                 copy[name] = Eq(v.version);
@@ -61,6 +70,7 @@ class Resolve {
             }
             else cb(Failure(new Error(NotFound, 'Unable to resolve dependencies for $name')));
           }
+          
           next();
         });
       }

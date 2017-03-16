@@ -1,0 +1,6 @@
+-lib tink_semver
+-lib travix
+-cp src
+-cp tests
+-neko bin/tests.n
+-main RunTests

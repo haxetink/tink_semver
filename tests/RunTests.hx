@@ -6,8 +6,8 @@ import tink.semver.Resolve;
 
 class RunTests {
 	static var cases:Array<TestCase> = [
-		new TestConstraint(),
-		new TestResolve(),
+		//new TestConstraint(),
+		//new TestResolve(),
 	];
 
   static function main() {
