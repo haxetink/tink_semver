@@ -45,23 +45,16 @@ class Resolve {
                   for (c in v.dependencies)
                     c.name => constraints[c.name] && c.constraint
                 ]);
-                //trace('$name $pos/${infos.length} ${print(constraints)}');  
-                var final = seek(rest.slice(1), constraints).next(function (ret) {
-                  var ret = add(ret, [name => v.version]);
-                  var constraints = add(
-                    constraints,
-                    [for (name in ret.keys()) name => Eq(ret[name])]
-                  );
-                  return seek([for (d in v.dependencies) d.name], constraints).next(function (deps) {
-                    return add(ret, deps);
-                  });                    
+                trace('attempt $name@${v.version} ($pos/${infos.length}) within ${print(constraints)}');  
 
-                });
-                if ('$name' == 'libA') {
-                  final.handle(function (x) trace(x));
-                }
-                return final.tryRecover(function (e) {
-                  trace(e.message);
+                var rest = rest.slice(1);
+                for (d in v.dependencies) 
+                  if (rest.indexOf(d.name) == -1)
+                    rest.push(d.name);
+
+                return seek(rest, constraints).next(function (ret) {
+                  return add(ret, [name => v.version]);
+                }).tryRecover(function (e) {
                   return attempt(pos + 1);
                 });
               }
