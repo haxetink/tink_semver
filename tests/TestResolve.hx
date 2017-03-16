@@ -84,7 +84,13 @@ class TestResolve extends TestCase {
           }] 
       }],
     ];
-    
+    // for (name in m.keys()) {
+		// 	trace('\n --- $name ---');
+		// 	for (v in m[name]) {
+		// 		trace(v.version.toString() + [for(d in v.dependencies) d.name+':'+d.constraint.toString()]);
+		// 	}
+		// }
+		// trace('\n---------\n\n');
     function resolve(name) 
       return Future.sync(switch m[name] {
         case null: Failure(new Error(NotFound, 'No version info available for $name'));
@@ -92,6 +98,7 @@ class TestResolve extends TestCase {
       });
     
     Resolve.dependencies([ { name: 'libD' }, { name: 'libA', constraint: null } ], resolve).handle(function (x) trace(x));
+    // Resolve.dependencies([ { name: 'libD' } ], resolve).handle(function (x) trace(x));
   }
   
   function expect(expected:Map<String, Version>, actual:Map<String, Version>) {

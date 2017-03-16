@@ -21,26 +21,32 @@ class Resolve {
         return new Map();
         
       var name = rest[0];
-      //trace('${pos.lineNumber} -> $name: $constraints');
       
       var constraint = constraints[name];
 
+      function print(constraints:Map<Name, Constraint>) {
+        return [for (c in constraints.keys()) c+':'+constraints[c]].join(', ');
+      }
+
+      trace('seek $rest with ${print(constraints)}');
       return getInfos(name).next(function (infos) {
         function attempt(pos:Int):Resolved<Name> {
           return 
             if (pos == infos.length) new Error('Failed to resolve $name');
             else {
-              trace('$name $pos/${infos.length}');
+              
               var v = infos[pos];
               if (!constraint.isSatisfiedBy(v.version))
                 attempt(pos + 1);
               else {
                 var constraints = add(constraints, [name => Eq(v.version)]);
 
-                for (c in v.dependencies)
-                  constraints[c.name] = constraints[c.name] && c.constraint;
-                  
-                return seek(rest.slice(1), constraints).next(function (ret) {
+                var constraints = add(constraints, [
+                  for (c in v.dependencies)
+                    c.name => constraints[c.name] && c.constraint
+                ]);
+                //trace('$name $pos/${infos.length} ${print(constraints)}');  
+                var final = seek(rest.slice(1), constraints).next(function (ret) {
                   var ret = add(ret, [name => v.version]);
                   var constraints = add(
                     constraints,
@@ -50,7 +56,14 @@ class Resolve {
                     return add(ret, deps);
                   });                    
 
-                }).tryRecover(function (_) return attempt(pos + 1));
+                });
+                if ('$name' == 'libA') {
+                  final.handle(function (x) trace(x));
+                }
+                return final.tryRecover(function (e) {
+                  trace(e.message);
+                  return attempt(pos + 1);
+                });
               }
             }
         }
