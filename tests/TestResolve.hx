@@ -16,7 +16,7 @@ class TestResolve extends TestCase {
     return v...(v.nextMajor());
   }
     
-  function _testSimple() {
+  function testSimple() {
     var m:Map<String, Infos<String>> = [
       'tink_core' => [
         { version: v(1, 0, 0), dependencies: [] },

@@ -7,6 +7,7 @@ class RunTests {
 	static var cases:Array<TestCase> = [
 		// new TestConstraint(),
 		new TestResolve(),
+    new TestBounds(),
 	];
 
   static function main() {
