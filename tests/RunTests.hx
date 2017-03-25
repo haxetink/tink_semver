@@ -5,7 +5,7 @@ import haxe.unit.TestRunner;
 
 class RunTests {
 	static var cases:Array<TestCase> = [
-		new TestConstraint(),
+		// new TestConstraint(),
 		new TestResolve(),
 	];
 

@@ -1,9 +1,6 @@
 package tink.semver;
 
-import tink.semver.Constraint;
-
 using Std;
-using tink.CoreApi;
 
 @:forward(toString)
 abstract Version(Data) from Data {
@@ -78,7 +75,7 @@ abstract Version(Data) from Data {
   
   @:op(a...b) static function range(a:Version, b:Version)
     return 
-      ConstraintData.And(Gt(a, OrEqual), Lt(b, Strictly));
+      Constraint.range(a, b);
       
   static public function parse(s:String)
     return 
@@ -134,7 +131,7 @@ private class Data {
     this.previewNum = previewNum;
   }
   
-  public function toString() {
+  @:keep public function toString() {
     var ret = '$major.$minor.$patch';
     if (preview != null) {
       ret += '-$preview';
