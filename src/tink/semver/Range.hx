@@ -9,7 +9,8 @@ class RangeTools {
   static public function toString(a:Range) {
     return 
       switch [a.min, a.max] {
-        case [Closed(a), Open(b)]: '$a - $b';
+        case [Closed(a), Closed(b)] if (a == b): '=$a';
+        case [Closed(a), Open(b)]: '$a - $b';//TODO: consider simplifying this to the other shortcuts as applicable
         default:
           (switch a.min {
             case Unbounded: '';
@@ -45,12 +46,16 @@ class RangeTools {
         case Open(max): max > v;
       });  
   
+  static public function nonEmpty(r:Range) {
+    return 
+      if (r.min.isLowerThan(r.max)) Some(r);
+      else None;
+  }
+
   static public function intersect(a:Range, b:Range):Option<Range> {
     var min = a.min.max(b.min, Lower),
         max = a.max.min(b.max, Upper);
     
-    return
-      if (min.isLowerThan(max)) Some({ min: min, max: max });
-      else None;
+    return nonEmpty({ min: min, max: max });
   }        
 }

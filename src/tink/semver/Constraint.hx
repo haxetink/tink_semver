@@ -42,10 +42,6 @@ abstract Constraint(Null<Array<Range>>) {
   inline function iterator()
     return this.iterator();
 
-  static function mergeSingle(a:Range, b:Range) {
-    return a.intersect(b);
-  }
-
   public function isSatisfiedBy(v:Version) 
     switch this {
       case null: return true;
@@ -62,33 +58,6 @@ abstract Constraint(Null<Array<Range>>) {
       default:
         [for (r in this) r.toString()].join(' || ');
     } 
-      
-  static public function parse(s:String)
-    return 
-      switch s {
-        case null, '', '*': Success(null);
-        default: //TODO: this parser is *very* crude
-          try 
-            Success(create(s.split('||').map(parseSingle)))
-          catch (e:Error)
-            Failure(e);
-      }
-  
-  static function parseSingle(s:String) {
-    
-    function die(reason:String, ?pos:haxe.PosInfos):Dynamic
-      return throw new Error(422, reason, pos);
-    
-    return switch tokenize(s) {
-      case [TOther(s)]: die('not implemented');
-      case [v]: die('unexpected $v');
-      default: die('not implemented');
-    }
-  }
-
-  static function tokenize(s:String):Array<Token> {
-    return [];
-  }
   
   @:from static function ofVersion(v:Version):Constraint
     return 
@@ -109,7 +78,7 @@ abstract Constraint(Null<Array<Range>>) {
           var res = a;
 
           for (b in b) 
-            switch mergeSingle(res, b) {
+            switch res.intersect(b) {
               case Some(c): res = c;
               case None: res = null; break;
             }
@@ -119,14 +88,4 @@ abstract Constraint(Null<Array<Range>>) {
 
         create(ret);
     }
-}
-
-enum Token {
-  TGt;
-  TGte;
-  TLt;
-  TLte;
-  TEq;
-  TDash;
-  TOther(s:String);
 }
