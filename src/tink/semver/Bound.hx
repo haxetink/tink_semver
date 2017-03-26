@@ -11,7 +11,7 @@ class BoundTools {
   static public function isLowerThan(a:Bound, b:Bound) 
     return
       switch [a, b] {
-        case [Closed(a) | Open(a), Open(b)] if (a == b): false;
+        case [Open(a), Open(b) | Closed(b)] if (a == b): false;
         case [Open(a) | Closed(a), Open(b) | Closed(b)] if (a > b): false;
         default: true;
       }

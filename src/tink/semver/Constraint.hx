@@ -7,28 +7,32 @@ abstract Constraint(Null<Array<Range>>) {
     inline function get_isSatisfiable()
       return this == null || this.length > 0;
 
-  inline function new(v) {
+  inline function new(v) 
     this = v;
-  }
   
   static public var ANY(default, null):Constraint = null;
 
+  static public function parse(s:String)
+    return new Parser(s).parseConstraint.catchExceptions();
+    
   static public function create(ranges:Array<Range>) {
     
     var merged = new Array<Range>();
 
-    for (nu in ranges) {
-      var next = [];
-      for (old in merged)
-        switch old.merge(nu) {
-          case None: next.push(old);
-          case Some(v): nu = v;
-        }
+    for (r in ranges) 
+      switch r.nonEmpty() {
+        case Some(nu):
+          var next = [];
+          for (old in merged)
+            switch old.merge(nu) {
+              case None: next.push(old);
+              case Some(v): nu = v;
+            }
 
-      next.push(nu);
-      merged = next;
-    
-    }
+          next.push(nu);
+          merged = next;
+        case None:
+      }
 
     return new Constraint(merged);
   }
@@ -42,6 +46,9 @@ abstract Constraint(Null<Array<Range>>) {
   inline function iterator()
     return this.iterator();
 
+  inline function array()
+    return this;
+
   public function isSatisfiedBy(v:Version) 
     switch this {
       case null: return true;
@@ -54,19 +61,28 @@ abstract Constraint(Null<Array<Range>>) {
   @:to public function toString() 
     return switch this {
       case null: '*';
-      case []: '<0';
+      case []: '<0.0.0';
       default:
         [for (r in this) r.toString()].join(' || ');
     } 
   
+  @:from static function fromRange(r:Range):Constraint
+    return create([r]);
+
   @:from static function ofVersion(v:Version):Constraint
     return 
       switch v {
-        case { preview: ALPHA | BETA | RC }: exact(v);
-        case { major: 0 } : v...v.nextMinor();
+        case { preview: ALPHA | BETA | RC } | { major: 0 }: exact(v);
         default: v...v.nextMajor();
       }
       
+  @:op(a || b) static function or(a:Constraint, b:Constraint):Constraint
+    return switch [a, b] {
+      case [null, _] | [_, null]: null;
+      default:
+        create(a.array().concat(b.array()));
+    }
+    
   @:op(a && b) static function and(a:Constraint, b:Constraint):Constraint
     return switch [a, b] {
       case [null, _]: b;

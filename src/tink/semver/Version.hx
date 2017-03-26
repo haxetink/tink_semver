@@ -28,14 +28,17 @@ abstract Version(Data) from Data {
   public function new(major:Int, ?minor:Int = 0, ?patch:Int = 0) 
     this = new Data(major, minor, patch);
   
-  public function alpha(?num:Int):Version  
-    return new Data(this.major, this.minor, this.patch, ALPHA, num);
+  public inline function prerelease(kind:Preview, ?num:Int):Version
+    return new Data(this.major, this.minor, this.patch, kind, num);
+
+  public inline function alpha(?num:Int):Version  
+    return prerelease(ALPHA, num);
     
-  public function beta(?num:Int):Version  
-    return new Data(this.major, this.minor, this.patch, BETA, num);
+  public inline function beta(?num:Int):Version  
+    return prerelease(BETA, num);
     
-  public function rc(?num:Int):Version  
-    return new Data(this.major, this.minor, this.patch, RC, num);
+  public inline function rc(?num:Int):Version  
+    return prerelease(RC, num);
     
   public function stable():Version  
     return new Data(this.major, this.minor, this.patch);
@@ -51,10 +54,23 @@ abstract Version(Data) from Data {
     
   public function compare(that:Version):Comparison 
     return 
-      ((this.major - that.major) : Comparison) 
-      >> ((this.minor - that.minor) : Comparison) 
-      >> ((this.patch - that.patch) : Comparison);
+      cmp(this.major, that.major) 
+      > cmp(this.minor, that.minor) 
+      > cmp(this.patch, that.patch)
+      > cmp(idx(this.preview), idx(that.preview))
+      > cmp(this.previewNum, that.previewNum);
   
+  inline function cmp(a:Int, b:Int):Comparison 
+    return a - b;
+
+  function idx(p:Null<Preview>)
+    return switch p {
+      case null: 100;
+      case ALPHA: 1;
+      case BETA: 2;
+      case RC: 3;
+    }
+
   @:op(a == b) static function eq(a:Version, b:Version)
     return a.compare(b) == IsEqual;
     
@@ -77,9 +93,10 @@ abstract Version(Data) from Data {
     return 
       Constraint.range(a, b);
       
-  static public function parse(s:String)
+  static public function parse(s:String):Outcome<Version, Error>
     return 
-      (function () return (Data.parse(s) : Version)).catchExceptions(reportError);
+      new Parser(s).parseVersion
+      .catchExceptions(reportError);
   
   static public function reportError(d:Dynamic):Error 
     return 
@@ -90,40 +107,15 @@ abstract Version(Data) from Data {
 }
 
 private class Data {
-  static var FORMAT = ~/^([0-9]+)\.([0-9]+)\.([0-9]+)(-(alpha|beta|rc)(\.([0-9]+))?)?$/;
-  
-  static public function parse(s:String) {
-    s = Std.string(s);
-    
-    if (!FORMAT.match(s))
-      throw '$s is not a valid version string';
-    
-    return new Data(
-      FORMAT.matched(1).parseInt(),
-      FORMAT.matched(2).parseInt(),
-      FORMAT.matched(3).parseInt(),
-      switch FORMAT.matched(5) {
-        case 'alpha': ALPHA;
-        case 'beta': BETA;
-        case 'rc': RC;
-        case v if (v == null): null;
-        case v: throw 'unrecognized preview tag $v';
-      },
-      switch FORMAT.matched(7) {
-        case null: null;
-        case v: v.parseInt();
-      }
-    );
-  }
   
   public var major(default, null):Int;
   public var minor(default, null):Int;
   public var patch(default, null):Int;
   
   public var preview(default, null):Null<Preview>;
-  public var previewNum(default, null):Null<Int>;
+  public var previewNum(default, null):Int;
   
-  public function new(major, minor, patch, ?preview, ?previewNum) {
+  public function new(major, minor, patch, ?preview, ?previewNum = -1) {
     this.major = major;
     this.minor = minor;
     this.patch = patch;
@@ -135,7 +127,7 @@ private class Data {
     var ret = '$major.$minor.$patch';
     if (preview != null) {
       ret += '-$preview';
-      if (previewNum != null)
+      if (previewNum != -1)
         ret += '.$previewNum';
     }
     return ret;
@@ -159,7 +151,7 @@ private class Data {
       else if (f < 0) IsLess;
       else IsEqual;
   
-  @:op(a >> b) static function chain(a:Comparison, b:Comparison)
+  @:op(a > b) static function chain(a:Comparison, b:Comparison)
     return
       if (a == IsEqual) b;
       else a;

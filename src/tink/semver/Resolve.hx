@@ -2,11 +2,19 @@ package tink.semver;
 
 typedef Resolved<Name> = Promise<Map<Name, Version>>;
 
+@:forward(keys, get)
+abstract ReadonlyMap<K, V>(Map<K, V>) {
+  
+}
+
 class Resolve {
   @:generic static public function dependencies<Name>(deps:Array<Dependency<Name>>, getInfos:Name->Promise<Infos<Name>>):Resolved<Name> {
 
     function add<T>(a:Map<Name, T>, b:Map<Name, T>)
-      return [for (m in [a, b]) for (key in m.keys()) key => m[key]];
+      return switch [a, b] {
+        case [null, v] | [v, null]: v;
+        default: [for (m in [a, b]) for (key in m.keys()) key => m[key]];
+      }
 
     function seek(rest:Array<Name>, constraints:Map<Name, Constraint>, ?pos:haxe.PosInfos):Resolved<Name> {
       if (rest.length == 0)

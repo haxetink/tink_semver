@@ -15,6 +15,7 @@
   "version": "0.0.0",
   "url": "https://github.com/haxetink/tink_semver/",
   "dependencies": {
-    "tink_core" : ""
+    "tink_core" : "",
+    "tink_parse" : ""
   }
 }
