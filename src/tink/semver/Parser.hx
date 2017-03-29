@@ -25,7 +25,7 @@ class Parser extends ParserBase<Pos, Error> {
 
   static var OR(default, never):StringSlice = '||';
   static var DOT(default, never):StringSlice = '.';
-  static var DASH(default, never):StringSlice = '-';
+  static var HYPHEN(default, never):StringSlice = '-';
   static var COMMA(default, never):StringSlice = ',';
 
   function lower(f:Version->Bound):Version->Constraint 
@@ -64,18 +64,22 @@ class Parser extends ParserBase<Pos, Error> {
     skipIgnored();
     return 
       if (allowHere('*')) null;
-      else if (allowHere('>=')) parseSimple(lower(Closed));
-      else if (allowHere('>')) parseSimple(lower(Open));
-      else if (allowHere('<=')) parseSimple(upper(Closed));
-      else if (allowHere('<')) parseSimple(upper(Open));
+      else if (allowHere('>=')) parseSimple(lower(Inclusive));
+      else if (allowHere('>')) parseSimple(lower(Exlusive));
+      else if (allowHere('<=')) parseSimple(upper(Inclusive));
+      else if (allowHere('<')) parseSimple(upper(Exlusive));
       else if (allowHere('=')) Constraint.exact(parseInlineVersion());
       else if (allowHere('^')) parseSimple(carret);
       else {
-        var v = parseInlineVersion();
-        if (allow(DASH)) 
-          Constraint.range(v, skipIgnored() + parseInlineVersion());
+        var p = parsePartial();
+        if (allow(HYPHEN)) 
+          { min: Inclusive(full(p)), max: Inclusive(skipIgnored() + parseInlineVersion()) };
         else
-          v;
+          if (p.patch < 0) {
+            var v = full(p, true);
+            v ... if (p.minor < 0) v.nextMajor() else v.nextMinor();
+          }
+          else full(p);
       }
   }
 
@@ -87,14 +91,54 @@ class Parser extends ParserBase<Pos, Error> {
       else die('Unexpected string', pos...max);
   }
 
-  function parseInlineVersion() {
-    var ret = new Version(num(), expectHere(DOT) + num(), expectHere(DOT) + num());
+  function numX()
+    return 
+      if (allowHere('x') || allowHere('X') || allowHere('*')) -1;
+      else num();
+
+  function parsePartial():Partial {
+    var start = pos;
+    function next()
+      return 
+        if (allowHere('.')) num();
+        else -1;
+
+    var major = num(),
+        minor = next(),
+        patch = next(),
+        preview = null,
+        previewNum = -1;
+
+    if (patch >= 0 && allowHere(HYPHEN)) {
+      preview = Preview.ofString(ident()).sure();
+      if (allowHere(DOT)) previewNum = num();
+    }
+
+    return {
+      major: major,
+      minor: minor,
+      patch: patch,
+      preview: preview,
+      previewNum: previewNum,
+      pos: start...pos,
+    }
+  }
+  function clamp(i:Int)
+    return if (i < 0) 0 else i;
+  function full(p:Partial, ?clamped:Bool) {
+
+    if (clamped != true && p.patch < 0)
+      die('Partial version not allowed', p.pos);
+    
+    var ret = new Version(p.major, clamp(p.minor), clamp(p.patch));
+
     return
-      if (allowHere(DASH)) ret.prerelease(
-        Preview.ofString(ident()).sure(),
-        if (allowHere(DOT)) num() else -1
-      );
+      if (p.preview != null) ret.prerelease(p.preview, p.previewNum);
       else ret;
+  }
+
+  function parseInlineVersion() {
+    return full(parsePartial());
   }
 
   override function makeError(message: String, pos:Pos) {
@@ -107,4 +151,13 @@ class Parser extends ParserBase<Pos, Error> {
   
   override function doMakePos(from, to)
     return from ... to;
+}
+
+typedef Partial = {
+  major:Int,
+  minor:Int,
+  patch:Int,
+  preview:Preview,
+  previewNum:Int,
+  pos:IntIterator,
 }

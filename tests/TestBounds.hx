@@ -11,10 +11,10 @@ class TestBounds extends haxe.unit.TestCase {
     assertEquals(Std.string(a), Std.string(b), pos);
   }
 
-  static var o1 = Open(v(1));
-  static var o2 = Open(v(2));
-  static var c1 = Closed(v(1));
-  static var c2 = Closed(v(2));
+  static var o1 = Exlusive(v(1));
+  static var o2 = Exlusive(v(2));
+  static var c1 = Inclusive(v(1));
+  static var c2 = Inclusive(v(2));
   
   function testUpperMin() {
     eq(o2, o2.min(c2, Upper));

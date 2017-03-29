@@ -2,11 +2,6 @@ package tink.semver;
 
 typedef Resolved<Name> = Promise<Map<Name, Version>>;
 
-@:forward(keys, get)
-abstract ReadonlyMap<K, V>(Map<K, V>) {
-  
-}
-
 class Resolve {
   @:generic static public function dependencies<Name>(deps:Array<Dependency<Name>>, getInfos:Name->Promise<Infos<Name>>):Resolved<Name> {
 
@@ -31,7 +26,7 @@ class Resolve {
             else {
               
               var v = infos[pos];
-              if (!constraint.isSatisfiedBy(v.version))
+              if (!constraint.matches(v.version))
                 attempt(pos + 1);
               else {
                 var constraints = add(constraints, [name => Constraint.exact(v.version)]);

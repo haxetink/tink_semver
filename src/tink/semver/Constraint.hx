@@ -3,6 +3,11 @@ package tink.semver;
 import tink.semver.Version;
 
 abstract Constraint(Null<Array<Range>>) {
+
+  public var isWildcard(get, never):Bool;
+    inline function get_isWildcard()
+      return this == null;
+
   public var isSatisfiable(get, never):Bool;
     inline function get_isSatisfiable()
       return this == null || this.length > 0;
@@ -10,10 +15,13 @@ abstract Constraint(Null<Array<Range>>) {
   inline function new(v) 
     this = v;
   
-  static public var ANY(default, null):Constraint = null;
+  static public var WILDCARD(default, null):Constraint = null;
 
   static public function parse(s:String)
-    return new Parser(s).parseConstraint.catchExceptions();
+    return switch s {
+      case '' | null: Success(WILDCARD);
+      default: new Parser(s).parseConstraint.catchExceptions();
+    }
     
   static public function create(ranges:Array<Range>) {
     
@@ -36,12 +44,12 @@ abstract Constraint(Null<Array<Range>>) {
 
     return new Constraint(merged);
   }
-  static public function exact(version:Version) {
-    return new Constraint([{ min: Closed(version), max: Closed(version) }]);
-  }
-  static public function range(min:Version, max:Version) {
-    return new Constraint([{ min: Closed(min), max: Open(max) }]);
-  }
+
+  static public function exact(version:Version):Constraint
+    return new Constraint([{ min: Inclusive(version), max: Inclusive(version) }]);
+  
+  static public function range(min:Version, max:Version):Constraint
+    return new Constraint({ min: Inclusive(min), max: Exlusive(max) }.nonEmpty().toArray());
 
   inline function iterator()
     return this.iterator();
@@ -49,7 +57,7 @@ abstract Constraint(Null<Array<Range>>) {
   inline function array()
     return this;
 
-  public function isSatisfiedBy(v:Version) 
+  public function matches(v:Version) 
     switch this {
       case null: return true;
       default: 
@@ -58,6 +66,7 @@ abstract Constraint(Null<Array<Range>>) {
             return true; 
         return false;
     }
+
   @:to public function toString() 
     return switch this {
       case null: '*';

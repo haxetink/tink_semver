@@ -116,6 +116,7 @@ private class Data {
   public var previewNum(default, null):Int;
   
   public function new(major, minor, patch, ?preview, ?previewNum = -1) {
+    if (major < 0 || minor < 0 || patch < 0) throw 'version components must not be negative';
     this.major = major;
     this.minor = minor;
     this.patch = patch;

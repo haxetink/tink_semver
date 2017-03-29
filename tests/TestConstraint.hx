@@ -11,16 +11,20 @@ class TestConstraint extends TestCase {
   function v(a, ?i = 0, ?p = 0)
     return new Version(a, i, p);
   
+  // function testEmpty() {
+  //   trace(Constraint.range(v(2), v(2)));
+  // }
+
   function testMatch() {
     function test(constraint:String, outside:Array<String>, within:Array<String>, ?pos:haxe.PosInfos) {
       
       var c = Constraint.parse(constraint).sure();
 
       for (v in outside)
-        assertFalse(c.isSatisfiedBy(Version.parse(v).sure()), pos);
+        assertFalse(c.matches(Version.parse(v).sure()), pos);
 
       for (v in within)
-        assertTrue(c.isSatisfiedBy(Version.parse(v).sure()), pos);
+        assertTrue(c.matches(Version.parse(v).sure()), pos);
 
     }
 
@@ -32,13 +36,15 @@ class TestConstraint extends TestCase {
   function testSimplify() {
 
     function test(raw:String, simplified:String, ?pos:haxe.PosInfos) {
-      assertEquals(Constraint.parse(simplified).sure().toString(), Constraint.parse(raw).sure().toString(), pos);
+      assertEquals(simplified, Constraint.parse(raw).sure().toString(), pos);
     }
 
-    test('^0.3.5', '0.3.5 - 0.4.0');
-    test('^0.3.5 || =1.0.0', '0.3.5 - 0.4.0 || =1.0.0');
-    test('^0.3.5 || <2.0.0 >=0.4.0 || =1.0.0', '0.3.5 - 2.0.0');
-    test('^0.3.5 || <2.0.0 >=0.4.0 || =1.0.0 || =2.0.0', '>=0.3.5 <=2.0.0');
+    test('>=1.3.5 <2.0.0', '^1.3.5');
+    test('>=0.3.5 <0.4.0', '^0.3.5');
+    test('^0.3.5', '^0.3.5');
+    test('^0.3.5 || =1.0.0', '^0.3.5 || =1.0.0');
+    test('^0.3.5 || <2.0.0 >=0.4.0 || =1.0.0', '>=0.3.5 <2.0.0');
+    test('^0.3.5 || <2.0.0 >=0.4.0 || =1.0.0 || =2.0.0', '0.3.5 - 2.0.0');
   }
 
   function allow(s:String) {
