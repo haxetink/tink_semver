@@ -13,7 +13,7 @@ This library aims to provide an implementation of a superset of SemVer 1 and a s
 1.2.3-rc.3.5
 ```
 
-The restriction was chosen based on the fact that `alpha`, `beta` and `rc` have a [relatively established upon meaning](https://en.wikipedia.org/wiki/Software_release_life_cycle). Thus `1.2.3-rc.2` is easily understood by anyone, while `1.2.3-banana.boat.party.1337+is.awesome.exp.sha.5114f85` does not share that quality. Moreover, we don't want to be comparing `1.2.3-apples` and `1.2.3-oranges`, particularly not alphabetically, because that makes `1.2.3-BETA` < `1.2.3-alpha` < `1.2.3-beta`.
+The restriction was chosen based on the fact that `alpha`, `beta` and `rc` have a [relatively well established meaning](https://en.wikipedia.org/wiki/Software_release_life_cycle). Thus `1.2.3-rc.2` is easily understood by anyone, while `1.2.3-banana.boat.party.1337+is.awesome.exp.sha.5114f85` does not share that quality. Moreover, we don't want to be comparing `1.2.3-apples` and `1.2.3-oranges`, particularly not alphabetically, because that makes `1.2.3-BETA` < `1.2.3-alpha` < `1.2.3-beta`.
 
 On top of these version semantics, we also define constraints for them, resulting in this overall API:
 
