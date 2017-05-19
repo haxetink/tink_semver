@@ -1,5 +1,8 @@
 # Tinkerbell Semantic Versioning
 
+[![Build Status](https://travis-ci.org/haxetink/tink_semver.svg?branch=master)](https://travis-ci.org/haxetink/tink_semver)
+[![Gitter](https://img.shields.io/gitter/room/nwjs/nw.js.svg?maxAge=2592000)](https://gitter.im/haxetink/public)
+
 This library aims to provide an implementation of a superset of SemVer 1 and a subset of SemVer 2. It does follow SemVer 2 by adding support for prerelease notation, however it is restricted to either `alpha`, `beta` or `rc` with an optional prerelease counter. Examples:
 
 ```
