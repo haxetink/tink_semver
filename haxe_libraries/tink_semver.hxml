@@ -1,0 +1,4 @@
+-D tink_semver
+-cp src
+-lib tink_core
+-lib tink_parse
