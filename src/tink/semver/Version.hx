@@ -104,7 +104,37 @@ abstract Version(Data) from Data {
         new Error(UnprocessableEntity, (d : String));
       else
         Error.withData(UnprocessableEntity, Std.string(d), d);
+        
+  
+    #if tink_json
+    @:from
+    public static function fromRepresentation(rep:JsonRep):Version {
+      var data = rep.get();
+      return new Data(data.major, data.minor, data.patch, data.preview, data.previewNum);
+    }
+      
+    @:to
+    public function toRepresentation():JsonRep {
+      return new tink.json.Representation({
+        major: this.major,
+        minor: this.minor,
+        patch: this.patch,
+        preview: this.preview,
+        previewNum: this.previewNum,
+      });
+    }
+    #end
 }
+
+#if tink_json
+private typedef JsonRep = tink.json.Representation<{
+  major:Int,
+  minor:Int,
+  patch:Int,
+  preview:Null<Preview>,
+  previewNum:Int,
+}>;
+#end
 
 private class Data {
   

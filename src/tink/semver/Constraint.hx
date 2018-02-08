@@ -113,4 +113,13 @@ abstract Constraint(Null<Array<Range>>) {
 
         create(ret);
     }
+    
+    #if tink_json
+    @:from
+    public static function fromRepresentation(rep:tink.json.Representation<Array<Range>>):Constraint
+      return create(rep.get());
+    @:to
+    public function toRepresentation():tink.json.Representation<Array<Range>>
+      return new tink.json.Representation(this);
+    #end
 }
