@@ -2,7 +2,6 @@ package tink.semver;
 
 using Std;
 
-@:forward(toString)
 abstract Version(Data) from Data {
   
   public var major(get, never):Int;
@@ -105,25 +104,38 @@ abstract Version(Data) from Data {
       else
         Error.withData(UnprocessableEntity, Std.string(d), d);
         
+  @:to
+  public inline function toString():String
+    return this.toString();
+    
+  #if tink_stringly
+  @:from
+  static inline public function fromStringly(v:tink.Stringly)
+    return parse(v).sure();
+    
+  @:to
+  public inline function toStringly():tink.Stringly
+    return this.toString();
+  #end  
   
-    #if tink_json
-    @:from
-    public static function fromRepresentation(rep:JsonRep):Version {
-      var data = rep.get();
-      return new Data(data.major, data.minor, data.patch, data.preview, data.previewNum);
-    }
-      
-    @:to
-    public function toRepresentation():JsonRep {
-      return new tink.json.Representation({
-        major: this.major,
-        minor: this.minor,
-        patch: this.patch,
-        preview: this.preview,
-        previewNum: this.previewNum,
-      });
-    }
-    #end
+  #if tink_json
+  @:from
+  public static function fromRepresentation(rep:JsonRep):Version {
+    var data = rep.get();
+    return new Data(data.major, data.minor, data.patch, data.preview, data.previewNum);
+  }
+    
+  @:to
+  public function toRepresentation():JsonRep {
+    return new tink.json.Representation({
+      major: this.major,
+      minor: this.minor,
+      patch: this.patch,
+      preview: this.preview,
+      previewNum: this.previewNum,
+    });
+  }
+  #end
 }
 
 #if tink_json
