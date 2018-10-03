@@ -22,17 +22,17 @@ install:
   - lix download
   
 script:
-  - lix run travix interp
-  - lix run travix neko
-  - lix run travix node
-  - lix run travix python
-  # - lix run travix flash
-  # - lix run travix java
-  # - lix run travix cs
-  - lix run travix lua
-  - lix run travix js
-  - lix run travix php
-  - lix run travix cpp
+  - lix run travix interp -lib hx3compat
+  - lix run travix neko -lib hx3compat
+  - lix run travix node -lib hx3compat
+  - lix run travix python -lib hx3compat
+  # - lix run travix flash -lib hx3compat
+  # - lix run travix java -lib hx3compat
+  # - lix run travix cs -lib hx3compat
+  - lix run travix lua -lib hx3compat
+  - lix run travix js -lib hx3compat
+  - lix run travix php -lib hx3compat
+  - lix run travix cpp -lib hx3compat
 
 # jobs:
 #   include:
