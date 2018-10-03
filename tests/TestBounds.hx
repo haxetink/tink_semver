@@ -1,14 +1,19 @@
 package ;
 
+import tink.unit.AssertionBuffer;
 import tink.semver.*;
 using tink.semver.Bound;
+using TestBounds;
 
-class TestBounds extends haxe.unit.TestCase {
+@:asserts
+class TestBounds {
+  public function new() {}
+  
   static function v(a, ?i = 0, ?p = 0)
     return new Version(a, i, p);
     
-  function eq(a:Bound, b:Bound, ?pos:haxe.PosInfos) {
-    assertEquals(Std.string(a), Std.string(b), pos);
+  static function eq(asserts:AssertionBuffer, a:Bound, b:Bound, ?pos:haxe.PosInfos) {
+    asserts.assert(Std.string(a) == Std.string(b), pos);
   }
 
   static var o1 = Exlusive(v(1));
@@ -16,31 +21,35 @@ class TestBounds extends haxe.unit.TestCase {
   static var c1 = Inclusive(v(1));
   static var c2 = Inclusive(v(2));
   
-  function testUpperMin() {
-    eq(o2, o2.min(c2, Upper));
-    eq(o1, o1.min(c2, Upper));
-    eq(c1, o2.min(c1, Upper));
-    eq(o1, o1.min(c1, Upper));
+  public function upperMin() {
+    asserts.eq(o2, o2.min(c2, Upper));
+    asserts.eq(o1, o1.min(c2, Upper));
+    asserts.eq(c1, o2.min(c1, Upper));
+    asserts.eq(o1, o1.min(c1, Upper));
+    return asserts.done();
   }
   
-  function testUpperMax() {
-    eq(c2, o2.max(c2, Upper));
-    eq(c2, o1.max(c2, Upper));
-    eq(o2, o2.max(c1, Upper));
-    eq(c1, o1.max(c1, Upper));
+  public function upperMax() {
+    asserts.eq(c2, o2.max(c2, Upper));
+    asserts.eq(c2, o1.max(c2, Upper));
+    asserts.eq(o2, o2.max(c1, Upper));
+    asserts.eq(c1, o1.max(c1, Upper));
+    return asserts.done();
   }
   
-  function testLowerMin() {
-    eq(c2, o2.min(c2, Lower));
-    eq(o1, o1.min(c2, Lower));
-    eq(c1, o2.min(c1, Lower));
-    eq(c1, o1.min(c1, Lower));
+  public function lowerMin() {
+    asserts.eq(c2, o2.min(c2, Lower));
+    asserts.eq(o1, o1.min(c2, Lower));
+    asserts.eq(c1, o2.min(c1, Lower));
+    asserts.eq(c1, o1.min(c1, Lower));
+    return asserts.done();
   }
 
-  function testLowerMax() {
-    eq(o2, o2.max(c2, Lower));
-    eq(c2, o1.max(c2, Lower));
-    eq(o2, o2.max(c1, Lower));
-    eq(o1, o1.max(c1, Lower));
+  public function lowerMax() {
+    asserts.eq(o2, o2.max(c2, Lower));
+    asserts.eq(c2, o1.max(c2, Lower));
+    asserts.eq(o2, o2.max(c1, Lower));
+    asserts.eq(o1, o1.max(c1, Lower));
+    return asserts.done();
   }
 }

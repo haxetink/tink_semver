@@ -1,13 +1,17 @@
 package;
 
-import haxe.unit.TestCase;
 import tink.semver.*;
 import tink.semver.Resolve;
+import tink.unit.AssertionBuffer;
 
 using tink.CoreApi;
 using Lambda;
+using TestResolve;
 
-class TestResolve extends TestCase {
+@:asserts
+class TestResolve {
+  public function new() {}
+  
   function v(a, ?i = 0, ?p = 0)
     return new Version(a, i, p);
   
@@ -16,7 +20,7 @@ class TestResolve extends TestCase {
     return v...(v.nextMajor());
   }
     
-  function testSimple() {
+  public function simple() {
     var m:Map<String, Infos<String>> = [
       'tink_core' => [
         { version: v(1, 0, 0), dependencies: [] },
@@ -61,16 +65,18 @@ class TestResolve extends TestCase {
 		});
 
     Resolve.dependencies([ { name: 'tink_syntaxhub' } ], resolve).handle(function (o) 
-      expect(
+      asserts.expect(
         ['tink_syntaxhub' => v(1, 0, 0), 'tink_macro' => v(1, 0, 0), 'tink_core' => v(1, 2, 5)],
         o.sure()
       )
     );
     
     for (q in queue) q();
+    
+    return asserts.done();
   }
   
-  function testWeird() {
+  public function weird() {
     var m:Map<String, Infos<String>> = [
       'libA' => [for (i in 90...100) { version: v(i), dependencies: [] }],
       'libB' => [for (i in 5...6) { version: v(i), dependencies: [{ name: 'libA', constraint: v(i * 17)...v(7 + i * 17) }] }], //0...7, 17...24, 34...41, 51...58, 68...75, 85...92
@@ -101,7 +107,7 @@ class TestResolve extends TestCase {
 
 		Resolve.dependencies([ { name: 'libD' }, { name: 'libA', constraint: null } ], resolve).handle(function (x) {
 
-			expect([
+			asserts.expect([
 				'libA' => v(91, 0, 0),
 				'libB' => v( 5, 0, 0),
 				'libC' => v( 7, 0, 0),
@@ -111,13 +117,14 @@ class TestResolve extends TestCase {
 		});
 
 		for (q in queue) q();
-
+    
+    return asserts.done();
   }
   
-  function expect(expected:Map<String, Version>, actual:Map<String, Version>) {
-    assertEquals(expected.count(), actual.count());
+  static function expect(asserts:AssertionBuffer, expected:Map<String, Version>, actual:Map<String, Version>) {
+    asserts.assert(expected.count() == actual.count());
     for (name in expected.keys()) {
-      assertEquals(expected[name].toString(), actual[name].toString());
+      asserts.assert(expected[name].toString() == actual[name].toString());
     }
   }
 }

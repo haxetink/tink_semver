@@ -1,13 +1,16 @@
 package;
 
-import haxe.unit.TestCase;
 import tink.semver.*;
+import tink.unit.AssertionBuffer;
 
 using tink.CoreApi;
 using Lambda;
+using TestConstraint;
 
-class TestConstraint extends TestCase {
-
+@:asserts
+class TestConstraint {
+  public function new() {}
+  
   function v(a, ?i = 0, ?p = 0)
     return new Version(a, i, p);
   
@@ -15,28 +18,29 @@ class TestConstraint extends TestCase {
   //   trace(Constraint.range(v(2), v(2)));
   // }
 
-  function testMatch() {
+  public function match() {
     function test(constraint:String, outside:Array<String>, within:Array<String>, ?pos:haxe.PosInfos) {
       
       var c = Constraint.parse(constraint).sure();
 
       for (v in outside)
-        assertFalse(c.matches(Version.parse(v).sure()), pos);
+        asserts.assert(!c.matches(Version.parse(v).sure()), pos);
 
       for (v in within)
-        assertTrue(c.matches(Version.parse(v).sure()), pos);
+        asserts.assert(c.matches(Version.parse(v).sure()), pos);
 
     }
 
     test('^0.0.3', ['0.0.2', '0.0.4', '0.0.3-alpha.1'], ['0.0.3']);
     test('^0.0.3-alpha', ['0.0.2', '0.0.4'], ['0.0.3', '0.0.3-alpha.0', '0.0.3-alpha.1']);
     test('^0.0.3-alpha.2', ['0.0.2', '0.0.4', '0.0.3-alpha.1'], ['0.0.3', '0.0.3-alpha.2', '0.0.3-alpha.3']);    
+    return asserts.done();
   }
 
-  function testSimplify() {
+  public function simplify() {
 
     function test(raw:String, simplified:String, ?pos:haxe.PosInfos) {
-      assertEquals(simplified, Constraint.parse(raw).sure().toString(), pos);
+      asserts.assert(simplified == Constraint.parse(raw).sure().toString(), pos);
     }
 
     test('>=1.3.5 <2.0.0', '^1.3.5');
@@ -45,30 +49,33 @@ class TestConstraint extends TestCase {
     test('^0.3.5 || =1.0.0', '^0.3.5 || =1.0.0');
     test('^0.3.5 || <2.0.0 >=0.4.0 || =1.0.0', '>=0.3.5 <2.0.0');
     test('^0.3.5 || <2.0.0 >=0.4.0 || =1.0.0 || =2.0.0', '0.3.5 - 2.0.0');
+    return asserts.done();
   }
 
-  function allow(s:String) {
-    assertTrue(switch Constraint.parse(s) {
+  static function allow(asserts:AssertionBuffer, s:String)
+    asserts.assert(switch Constraint.parse(s) {
       case Failure(f): 
         trace('$s -> $f');
         false;
       case Success(_): true;
     });
-  }
     
-  function reject(s:String)
-    assertFalse(Constraint.parse(s).isSuccess());
+  static function reject(asserts:AssertionBuffer, s:String)
+    asserts.assert(!Constraint.parse(s).isSuccess());
   
-  function _testValid() 
+  @:exclude
+  public function valid() {
     [
       '*',
       '1.2.3',
       '1.2.3 - 3.2.1',
       '1.2.3 - 3.2.1 || 3.2.1',
       '1.2.3 - 3.2.1 || <5.2.1 ^1.2.4',
-    ].iter(allow);
-    
-  function _testInvalid()
+    ].iter(asserts.allow);
+    return asserts.done();
+  }  
+  @:exclude
+  public function invalid() {
     [
       'a',
       '1.2.3-3.2.1',
@@ -77,6 +84,8 @@ class TestConstraint extends TestCase {
       '3.2.1-',
       '3.2.1-horst',
       '3.2.1 -',
-    ].iter(reject);
+    ].iter(asserts.reject);
+    return asserts.done();
   
+  } 
 }
