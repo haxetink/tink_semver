@@ -17,8 +17,12 @@ class Parser extends ParserBase<Pos, Error> {
   override function doSkipIgnored() 
     doReadWhile(Char.WHITE); 
 
-  inline function num() 
-    return Std.parseInt(readWhile(Char.DIGIT));
+  function num() {
+    return switch Std.parseInt(readWhile(Char.DIGIT)) {
+      case null: -1;
+      case v: v;
+    }
+  }
 
   inline function ident() 
     return readWhile(Char.LOWER);
