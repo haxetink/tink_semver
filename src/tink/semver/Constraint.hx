@@ -120,6 +120,6 @@ abstract Constraint(Null<Array<Range>>) {
       return create(rep.get());
     @:to
     public function toRepresentation():tink.json.Representation<Array<Range>>
-      return new tink.json.Representation(this);
+      return new tink.json.Representation(this == null ? [] : this);
     #end
 }
