@@ -52,39 +52,29 @@ class TestConstraint {
     return asserts.done();
   }
 
-  static function allow(asserts:AssertionBuffer, s:String)
-    asserts.assert(switch Constraint.parse(s) {
-      case Failure(f): 
-        trace('$s -> $f');
-        false;
-      case Success(_): true;
-    });
+  static function allow(asserts:AssertionBuffer, s:String, ?pos:haxe.PosInfos)
+    asserts.assert(Constraint.parse(s), pos);
     
-  static function reject(asserts:AssertionBuffer, s:String)
-    asserts.assert(!Constraint.parse(s).isSuccess());
+  static function reject(asserts:AssertionBuffer, s:String, ?pos:haxe.PosInfos)
+    asserts.assert(!Constraint.parse(s).isSuccess(), pos);
   
-  @:exclude
   public function valid() {
-    [
-      '*',
-      '1.2.3',
-      '1.2.3 - 3.2.1',
-      '1.2.3 - 3.2.1 || 3.2.1',
-      '1.2.3 - 3.2.1 || <5.2.1 ^1.2.4',
-    ].iter(asserts.allow);
+    asserts.allow('*');
+    asserts.allow('1.2.3');
+    asserts.allow('1.2.3 - 3.2.1');
+    asserts.allow('1.2.3 - 3.2.1 || 3.2.1');
+    asserts.allow('1.2.3 - 3.2.1 || <5.2.1 ^1.2.4');
     return asserts.done();
   }  
-  @:exclude
+  
   public function invalid() {
-    [
-      'a',
-      '1.2.3-3.2.1',
-      '-3.2.1',
-      '- 3.2.1',
-      '3.2.1-',
-      '3.2.1-horst',
-      '3.2.1 -',
-    ].iter(asserts.reject);
+    asserts.reject('a');
+    asserts.reject('1.2.3-3.2.1');
+    asserts.reject('-3.2.1');
+    asserts.reject('- 3.2.1');
+    asserts.reject('3.2.1-');
+    asserts.reject('3.2.1-horst');
+    asserts.reject('3.2.1 -');
     return asserts.done();
   
   } 
