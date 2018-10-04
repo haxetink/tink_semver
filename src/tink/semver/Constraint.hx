@@ -17,7 +17,7 @@ abstract Constraint(Null<Array<Range>>) {
   
   static public var WILDCARD(default, null):Constraint = null;
 
-  static public function parse(s:String)
+  static public function parse(s:String):Outcome<Constraint, Error>
     return switch s {
       case '' | null: Success(WILDCARD);
       default: new Parser(s).parseConstraint.catchExceptions();
