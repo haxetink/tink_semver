@@ -120,33 +120,14 @@ abstract Version(Data) from Data {
   
   #if tink_json
   @:from
-  public static function fromRepresentation(rep:JsonRep):Version {
-    var data = rep.get();
-    return new Data(data.major, data.minor, data.patch, data.preview, data.previewNum);
-  }
+  public static inline function fromRepresentation(rep:tink.json.Representation<String>):Version
+    return parse(rep.get()).sure();
     
   @:to
-  public function toRepresentation():JsonRep {
-    return new tink.json.Representation({
-      major: this.major,
-      minor: this.minor,
-      patch: this.patch,
-      preview: this.preview,
-      previewNum: this.previewNum,
-    });
-  }
+  public inline function toRepresentation():tink.json.Representation<String>
+    return new tink.json.Representation(this.toString());
   #end
 }
-
-#if tink_json
-private typedef JsonRep = tink.json.Representation<{
-  major:Int,
-  minor:Int,
-  patch:Int,
-  preview:Null<Preview>,
-  previewNum:Int,
-}>;
-#end
 
 private class Data {
   
