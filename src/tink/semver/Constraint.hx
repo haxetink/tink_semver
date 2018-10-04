@@ -66,6 +66,9 @@ abstract Constraint(Null<Array<Range>>) {
             return true; 
         return false;
     }
+    
+  @:from public static inline function fromString(v:String):Constraint
+    return parse(v).sure();
 
   @:to public function toString() 
     return switch this {
@@ -116,10 +119,10 @@ abstract Constraint(Null<Array<Range>>) {
     
     #if tink_json
     @:from
-    public static function fromRepresentation(rep:tink.json.Representation<Array<Range>>):Constraint
-      return create(rep.get());
+    public static function fromRepresentation(rep:tink.json.Representation<String>):Constraint
+      return fromString(rep.get());
     @:to
-    public function toRepresentation():tink.json.Representation<Array<Range>>
-      return new tink.json.Representation(this == null ? [] : this);
+    public function toRepresentation():tink.json.Representation<String>
+      return new tink.json.Representation(toString());
     #end
 }
