@@ -119,10 +119,10 @@ abstract Constraint(Null<Array<Range>>) {
     
     #if tink_json
     @:from
-    public static function fromRepresentation(rep:tink.json.Representation<String>):Constraint
+    public static inline function fromRepresentation(rep:tink.json.Representation<String>):Constraint
       return fromString(rep.get());
     @:to
-    public function toRepresentation():tink.json.Representation<String>
+    public inline function toRepresentation():tink.json.Representation<String>
       return new tink.json.Representation(toString());
     #end
 }
