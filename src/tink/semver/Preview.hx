@@ -7,7 +7,7 @@ package tink.semver;
   var RC = 'rc';
 
   static public function ofString(s:String) 
-    return switch s {
+    return switch (cast s:Preview) {
       case ALPHA: Success(ALPHA);
       case BETA: Success(BETA);
       case RC: Success(RC);
