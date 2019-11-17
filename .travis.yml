@@ -1,5 +1,5 @@
 sudo: required
-dist: trusty
+dist: xenial
 
 # stages:
 #   - test
@@ -19,12 +19,12 @@ os:
 env:
   - HAXE_VERSION=3.4.7
   - HAXE_VERSION=latest
-  
+
 install:
   - npm i -g lix
   - lix install haxe $HAXE_VERSION
   - lix download
-  
+
 script:
   - lix run travix interp
   - lix run travix neko
