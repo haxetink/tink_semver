@@ -3,19 +3,38 @@ package tink.semver;
 import tink.parse.*;
 
 abstract Pos(IntIterator) from IntIterator to IntIterator {
-    
+
   public var from(get, never):Int;
     inline function get_from() return @:privateAccess this.min;
-  
+
   public var to(get, never):Int;
     inline function get_to() return @:privateAccess this.max;
-  
+
+}
+
+private class Reporter implements tink.parse.Reporter.ReporterObject<Pos, Error> {
+
+  var source:StringSlice;
+
+  public function new(source)
+    this.source = source;
+
+  public function makeError(message: String, pos:Pos) {
+    return new Error(
+      '$message at ' +
+      '"${source[pos]}"(${pos.from}-${pos.to})' +
+      ' in "$source"'
+    );
+  }
+
+  public function makePos(from, to)
+    return from ... to;
 }
 
 class Parser extends ParserBase<Pos, Error> {
 
-  override function doSkipIgnored() 
-    doReadWhile(Char.WHITE); 
+  override function doSkipIgnored()
+    doReadWhile(Char.WHITE);
 
   function num() {
     return switch Std.parseInt(readWhile(Char.DIGIT)) {
@@ -24,7 +43,10 @@ class Parser extends ParserBase<Pos, Error> {
     }
   }
 
-  inline function ident() 
+  public function new(s)
+    super(s, new Reporter(s));
+
+  inline function ident()
     return readWhile(Char.LOWER);
 
   static var OR(default, never):StringSlice = '||';
@@ -32,16 +54,16 @@ class Parser extends ParserBase<Pos, Error> {
   static var HYPHEN(default, never):StringSlice = '-';
   static var COMMA(default, never):StringSlice = ',';
 
-  function lower(f:Version->Bound):Version->Constraint 
+  function lower(f:Version->Bound):Version->Constraint
     return function (v) return { min: f(v), max: Unbounded };
-  
-  function upper(f:Version->Bound):Version->Constraint 
+
+  function upper(f:Version->Bound):Version->Constraint
     return function (v) return { min: Unbounded, max: f(v) };
-  
+
   function parseSimple(f:Version->Constraint):Constraint {
-    
+
     var r = f(parseInlineVersion());
-    
+
     while (!upNext('|'.code) && pos < max) {
       r = r && parseSingle();
     }
@@ -51,13 +73,13 @@ class Parser extends ParserBase<Pos, Error> {
 
   public function parseConstraint():Constraint {
     var ret = parseSingle();
-    while (allow(OR)) 
+    while (allow(OR))
       ret = ret || parseSingle();
     return ret;
   }
 
   function carret(v:Version)
-    return 
+    return
       v...
         if (v.major == 0)
           if (v.minor == 0) v.nextPatch();
@@ -66,7 +88,7 @@ class Parser extends ParserBase<Pos, Error> {
 
   function parseSingle():Constraint {
     skipIgnored();
-    return 
+    return
       if (allowHere('*')) null;
       else if (allowHere('>=')) parseSimple(lower(Inclusive));
       else if (allowHere('>')) parseSimple(lower(Exlusive));
@@ -76,7 +98,7 @@ class Parser extends ParserBase<Pos, Error> {
       else if (allowHere('^')) parseSimple(carret);
       else {
         var p = parsePartial();
-        if (allow(HYPHEN)) 
+        if (allow(HYPHEN))
           { min: Inclusive(full(p)), max: Inclusive(skipIgnored() + parseInlineVersion()) };
         else
           if (p.patch < 0) {
@@ -96,14 +118,14 @@ class Parser extends ParserBase<Pos, Error> {
   }
 
   function numX()
-    return 
+    return
       if (allowHere('x') || allowHere('X') || allowHere('*')) -1;
       else num();
 
   function parsePartial():Partial {
     var start = pos;
     function next()
-      return 
+      return
         if (allowHere('.')) num();
         else -1;
 
@@ -133,7 +155,7 @@ class Parser extends ParserBase<Pos, Error> {
 
     if (clamped != true && p.patch < 0)
       die('Partial version not allowed', p.pos);
-    
+
     var ret = new Version(p.major, clamp(p.minor), clamp(p.patch));
 
     return
@@ -145,16 +167,6 @@ class Parser extends ParserBase<Pos, Error> {
     return full(parsePartial());
   }
 
-  override function makeError(message: String, pos:Pos) {
-    return new Error(
-      '$message at ' +
-      '"${source[pos]}"(${pos.from}-${pos.to})' +
-      ' in "$source"'
-    );
-  }
-  
-  override function doMakePos(from, to)
-    return from ... to;
 }
 
 typedef Partial = {
