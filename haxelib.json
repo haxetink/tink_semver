@@ -1,20 +1,20 @@
 {
-  "name": "tink_semver",
-  "license": "MIT",
-  "tags": [
-    "tink",
-    "cross",
-    "semver",
-    "versioning"
-  ],
-  "classPath": "src",
-  "contributors": [
-    "back2dos"
-  ],
-  "releasenote": "initial release",
-  "version": "0.0.0",
-  "url": "https://github.com/haxetink/tink_semver/",
-  "dependencies": {
-    "tink_parse" : ""
-  }
+	"name": "tink_semver",
+	"classPath": "src",
+	"dependencies": {
+		"tink_parse": ""
+	},
+	"url": "https://github.com/haxetink/tink_semver/",
+	"contributors": [
+		"back2dos"
+	],
+	"version": "0.1.0",
+	"releasenote": "Update for latest tink_parse.",
+	"tags": [
+		"tink",
+		"cross",
+		"semver",
+		"versioning"
+	],
+	"license": "MIT"
 }
