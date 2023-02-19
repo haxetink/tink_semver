@@ -8,8 +8,8 @@
 	"contributors": [
 		"back2dos"
 	],
-	"version": "0.1.0",
-	"releasenote": "Update for latest tink_parse.",
+	"version": "0.1.1",
+	"releasenote": "Fixed the `Resolve.seek` method (i.e. `Map` should be `Resolved<Name>`).",
 	"tags": [
 		"tink",
 		"cross",
