@@ -13,7 +13,7 @@ class Resolve {
 
     function seek(rest:Array<Name>, constraints:Map<Name, Constraint>, ?pos:haxe.PosInfos):Resolved<Name> {
       if (rest.length == 0)
-        return new Map();
+        return Promise.resolve(new Map());
         
       var name = rest[0];
       
