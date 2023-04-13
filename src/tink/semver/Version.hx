@@ -131,12 +131,12 @@ abstract Version(Data) from Data {
 
 private class Data {
 
-  public var major(default, null):Int;
-  public var minor(default, null):Int;
-  public var patch(default, null):Int;
+  public final major:Int;
+  public final minor:Int;
+  public final patch:Int;
 
-  public var preview(default, null):Null<Preview>;
-  public var previewNum(default, null):Int;
+  public final preview:Null<Preview>;
+  public final previewNum:Int;
 
   public function new(major, minor, patch, ?preview, ?previewNum = -1) {
     if (major < 0 || minor < 0 || patch < 0) throw 'version components must not be negative';
